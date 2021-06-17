@@ -1,17 +1,15 @@
 #!/usr/bin/python3
-
 import os
 
-# in ~/.bashrc, replace \w by the output of this script   
-#    TRIMED_PATH=$(ps1_shortener.py)
-#    if [ "$color_prompt" = yes ]; then
-#        PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]$TRIMED_PATH\[\033[00m\]\$ '
-#    else
-#        PS1='${debian_chroot:+($debian_chroot)}\u@\h:$TRIMED_PATH\$ '
-#    fi
-
-
-
+# INSTALLATION :
+install_prefix = "/usr/bin/"
+file_name = os.path.basename(__file__)
+if not os.path.isfile(install_prefix + file_name):
+    from subprocess import call
+    # create link to location accessible from path (asks for root priviledges)
+    call(["sudo", "ln", "-fs", __file__, install_prefix])
+    # replace \w in the PS1 composition by a call to this script
+    call(["sed", "-i", f"s/\\\\w/\$\({file_name}\)/", f"{os.path.expanduser('~')}/.bashrc"])
 
 def path_it(path):
     head, tail = os.path.split(path)
@@ -23,5 +21,6 @@ def path_it(path):
 
 pwd = os.getcwd()
 ps1 = [d for d in path_it(pwd)]
-ps1[-1] = os.path.basename(pwd)
+if len(ps1) > 1 :
+    ps1[-1] = os.path.basename(pwd)
 print(os.path.join(*ps1))
