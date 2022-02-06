@@ -7,7 +7,7 @@ file_name = os.path.basename(__file__)
 if not os.path.isfile(install_prefix + file_name):
     from subprocess import call
     # create link to location accessible from path (asks for root priviledges)
-    call(["sudo", "ln", "-fs", __file__, install_prefix])
+    call(["sudo", "ln", "-fs",os.path.realpath(__file__), install_prefix])
     # replace \w in the PS1 composition by a call to this script
     call(["sed", "-i", f"/PS1=/ {{s/\\\\w/`{file_name}`/}}", f"{os.path.expanduser('~')}/.bashrc"])
 
