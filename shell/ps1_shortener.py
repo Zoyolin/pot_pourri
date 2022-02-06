@@ -9,18 +9,12 @@ if not os.path.isfile(install_prefix + file_name):
     # create link to location accessible from path (asks for root priviledges)
     call(["sudo", "ln", "-fs", __file__, install_prefix])
     # replace \w in the PS1 composition by a call to this script
-    call(["sed", "-i", f"s/\\\\w/\$\({file_name}\)/", f"{os.path.expanduser('~')}/.bashrc"])
+    call(["sed", "-i", f"/PS1=/ {{s/\\\\w/`{file_name}`/}}", f"{os.path.expanduser('~')}/.bashrc"])
 
-def path_it(path):
-    head, tail = os.path.split(path)
-    if head == os.path.abspath(os.sep):
-         yield path
-    else:
-        yield from path_it(head)
-        yield tail[0]
-
-pwd = os.getcwd()
-ps1 = [d for d in path_it(pwd)]
-if len(ps1) > 1 :
-    ps1[-1] = os.path.basename(pwd)
-print(os.path.join(*ps1))
+ps1 = os.getcwd().replace(os.path.expanduser("~"), "/~").split(os.sep)[1:]
+middle = [d[:3] for d in ps1[1:-1]]
+if len(ps1) > 1:
+    ps1 = os.path.join(ps1[0], *middle, ps1[-1])
+else:
+    ps1 = ps1[0]
+print(ps1)
