@@ -1,34 +1,49 @@
 #!/usr/bin/python3
+
 """shortens the prompt path."""
 import os
+import sys
 
-NB_DIGITS = 3
+def auto_install():
+    install_prefix = "/usr/bin/"  # must be in the PATH
+    file_name = os.path.basename(__file__)
+    if not os.path.isfile(install_prefix + file_name):
+        from subprocess import call
 
-# TODO: consider multiple users on 1 machine
+        # create link to location accessible from path (asks for root priviledges)
+        call(["sudo", "ln", "-fs", os.path.realpath(__file__), install_prefix])
+        # replace \w in the PS1 composition by a call to this script
+        call(
+            [
+                "sed",
+                "-i",
+                f"/PS1=/ {{s/\\\\w/`{file_name}`/}}",
+                f"{os.path.expanduser('~')}/.bashrc",
+            ]
+        )
 
-# INSTALLATION :
-install_prefix = "/usr/bin/"  # must be in the PATH
-file_name = os.path.basename(__file__)
-if not os.path.isfile(install_prefix + file_name):
-    from subprocess import call
+def shorten():
+    """
+    TODO: consider multiple users on 1 machine
+    """
+    NB_DIGITS = 3
 
-    # create link to location accessible from path (asks for root priviledges)
-    call(["sudo", "ln", "-fs", os.path.realpath(__file__), install_prefix])
-    # replace \w in the PS1 composition by a call to this script
-    call(
-        [
-            "sed",
-            "-i",
-            f"/PS1=/ {{s/\\\\w/`{file_name}`/}}",
-            f"{os.path.expanduser('~')}/.bashrc",
-        ]
-    )
+    if len(sys.argv) == 1:
+        print(f"Usage: {os.path.basename(__file__)} <path>" )
+    if len(sys.argv) != 2:
+        exit(os.EX_USAGE)
+    
+    # use that to run on current path.
+    # pwd = os.getcwd().replace(os.path.expanduser("~"), "/~")
+    pwd=sys.argv[1]
 
+    ps1 = pwd.split(os.sep)[1:]
+    ps1[1:-1] = [elem[:NB_DIGITS] for elem in ps1[1:-1]]
+    ps1 = os.path.join(*ps1)
+    if ps1[0] != "~":
+        ps1 = "/" + ps1
+    print(ps1, end="")
 
-pwd = os.getcwd().replace(os.path.expanduser("~"), "/~")
-ps1 = pwd.split(os.sep)[1:]
-ps1[1:-1] = [d[:NB_DIGITS] for d in ps1[1:-1]]
-ps1 = os.path.join(*ps1)
-if ps1[0] != "~":
-    ps1 = "/" + ps1
-print(ps1)
+if __name__ == "__main__":
+    # auto_install()
+    shorten()
